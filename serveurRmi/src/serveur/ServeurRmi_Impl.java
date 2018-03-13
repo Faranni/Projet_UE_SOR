@@ -1,5 +1,6 @@
 package serveur;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -19,6 +20,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.ResourceBundle;
 
+import beans.meteo.Image;
 import beans.meteo.Meteo;
 import beans.meteo.Temps;
 import beans.utilisateur.Utilisateur;
@@ -176,15 +178,19 @@ public class ServeurRmi_Impl implements ServeurRmi {
 
 		try {
 
-			String req = "SELECT `lieu`,`type`,`date` FROM `t_meteo`";
+			String req = "SELECT * FROM `t_meteo`";
 			PreparedStatement preparedStatement = this.connection.prepareStatement(req);
 			ResultSet resultSet = preparedStatement.executeQuery();
-
 			while (resultSet.next()) {
 				Meteo meteo = new Meteo();
 				meteo.setLieu(resultSet.getString("lieu"));
 				meteo.setTemps(Temps.valueOf(resultSet.getString("type")));
 				meteo.setDate(resultSet.getDate("date"));
+				meteo.setIdMeteo(resultSet.getInt("idMeteo"));
+				meteo.setMax(resultSet.getDouble("maximum"));
+				meteo.setMoy(resultSet.getDouble("moyenne"));
+				meteo.setMin(resultSet.getDouble("minimum"));
+				System.out.println(meteo.toString());
 				meteos.add(meteo);
 			}
 			resultSet.close();
@@ -203,11 +209,14 @@ public class ServeurRmi_Impl implements ServeurRmi {
 
 			int idMeteo;
 			if((idMeteo = this.meteoExiste(meteo)) == -1 ) {
-				String req = "INSERT INTO `t_meteo` (`idMeteo`, `lieu`, `type`, `date`) VALUES (NULL, ?, ?, ?)";
+				String req = "INSERT INTO `t_meteo` (`idMeteo`, `lieu`, `type`, `date`, `minimum`, `maximum`, `moyenne`) VALUES (NULL, ?,?,?,?,?,?)";
 				PreparedStatement preparedStatement = this.connection.prepareStatement(req);
 				preparedStatement.setString(1, meteo.getLieu());
 				preparedStatement.setString(2, meteo.getTemps().toString());
 				preparedStatement.setDate(3, meteo.getDate());
+				preparedStatement.setDouble(4, meteo.getMin());
+				preparedStatement.setDouble(5, meteo.getMax());
+				preparedStatement.setDouble(6, meteo.getMoy());
 				preparedStatement.executeUpdate();
 				preparedStatement.close();
 			}else {
@@ -305,7 +314,84 @@ public class ServeurRmi_Impl implements ServeurRmi {
 	
 	
 	
-	public static void main(String [] args) {
+	
+	@Override
+	public void ajouterImage(int idMeteo,Image image) throws RemoteException {
+		try {	
+			
+				//table image
+				String req = "INSERT INTO `t_image` (`idImage`,`image`) VALUES (NULL, ?)";
+				PreparedStatement preparedStatement = this.connection.prepareStatement(req,PreparedStatement.RETURN_GENERATED_KEYS);
+				InputStream flux = new ByteArrayInputStream(image.getImage());
+				preparedStatement.setBinaryStream(1,flux );
+				preparedStatement.executeUpdate();
+				ResultSet rs =preparedStatement.getGeneratedKeys();
+				int key=-1;
+				if (rs != null && rs.next()) {
+				    key = rs.getInt(1);
+				}
+				
+				this.ajouterJointure(idMeteo, key);
+				
+			
+
+		} catch (SQLException e) {
+			
+		}
+	}	
+
+	
+	private void ajouterJointure(int idMeteo,int key) {
+		try {	
+			//table de jointure
+			String req = "INSERT INTO `t_meteo_image` (`idMeteoImage`,`idMeteo`,`idImage`) VALUES (NULL, ?, ?)";
+			PreparedStatement preparedStatement = this.connection.prepareStatement(req);
+			preparedStatement.setInt(1, idMeteo);
+			preparedStatement.setInt(2, key);
+			preparedStatement.executeUpdate();				
+		
+			preparedStatement.close();
+		} catch (SQLException e) {
+			
+		}
+	}
+
+	@Override
+	public int supprimerImage(int idImage) throws RemoteException {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public List<Image> getlisteImage(int id) throws RemoteException {
+		
+		List<Image> images=new ArrayList<Image>();
+		try {		
+			String req = "select image from t_meteo_image,t_image where t_image.idImage=t_meteo_image.idImage AND t_meteo_image.idImage=?";
+			PreparedStatement preparedStatement = this.connection.prepareStatement(req);
+
+			preparedStatement.setInt(1,id);
+			ResultSet rs = preparedStatement.executeQuery();
+			
+			if (rs.next()) {
+				byte[] image =rs.getBytes("image");
+				int idImage=rs.getInt("idImage");
+				Image img=new Image();
+				img.setIdImage(idImage);
+				img.setImage(image);
+				images.add(img);
+			}
+
+			preparedStatement.close();
+
+		} catch (SQLException e) {
+			System.out.println("Erreur serveur.listeImages " + e.getMessage());
+		}
+		
+		return images;
+	}
+
+public static void main(String [] args) {
 		
 		int port = 3000;
 		
@@ -342,23 +428,6 @@ public class ServeurRmi_Impl implements ServeurRmi {
 		System.out.println("Serveur RMI lancé");
 	}
 
-	@Override
-	public int ajouterImage(InputStream inputStream) throws RemoteException {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public int supprimerImage(int idImage) throws RemoteException {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public String getImageName(int id) throws RemoteException {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 	
 

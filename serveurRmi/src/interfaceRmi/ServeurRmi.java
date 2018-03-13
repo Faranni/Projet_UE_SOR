@@ -15,6 +15,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.ResourceBundle;
 
+import beans.meteo.Image;
 import beans.meteo.Meteo;
 import beans.utilisateur.Utilisateur;
 
@@ -43,9 +44,10 @@ public interface ServeurRmi extends Remote {
 
 	public void ajouterMeteos(Meteo meteo, Date dateFin)throws RemoteException;
 
-	public int ajouterImage( InputStream inputStream)throws RemoteException;
+	public void ajouterImage( int idMeteo,Image image)throws RemoteException;
+	
 	public int supprimerImage( int idImage)throws RemoteException;
 
-	public String getImageName(int id)throws RemoteException;
+	public List<Image> getlisteImage(int id)throws RemoteException;
 
 }

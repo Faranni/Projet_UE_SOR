@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import beans.formulaires.FormulaireAjouter;
 import beans.meteo.Meteo;
+import beans.meteo.Temps;
 import interfaceRmi.ServeurRmi;
 import manager.Manager;
 import validation.Validation;
@@ -31,6 +32,10 @@ public class ServletAjouter extends HttpServlet {
 		request.setAttribute("titre", "Ajouter");
 		request.setAttribute("contenu", "/WEB-INF/ajouter/Ajouter.jsp");
 		request.getServletContext().getRequestDispatcher("/WEB-INF/models/model.jsp").forward(request, response);
+		 for(Temps lang : Temps.values()){
+		  System.out.println("J'aime le : " + lang);
+		 }
+		    
 	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -39,20 +44,30 @@ public class ServletAjouter extends HttpServlet {
 		String lieu = (String) request.getParameter("lieu");
 		String type = (String) request.getParameter("type");
 		String date = (String) request.getParameter("date");
+		String minimum = (String) request.getParameter("minimum");
+		String maximum = (String) request.getParameter("maximum");
+		String moyenne = (String) request.getParameter("moyenne");
 
 		// debut de la validation du formulaire
 		FormulaireAjouter formulaireAjouter = new FormulaireAjouter();
 		formulaireAjouter.setDate(date);
 		formulaireAjouter.setLieu(lieu);
 		formulaireAjouter.setType(type);
+		formulaireAjouter.setMinimum(minimum);
+		formulaireAjouter.setMaximum(maximum);
+		formulaireAjouter.setMoyenne(moyenne);
 		Validation validation = formulaireAjouter.getValidation();
 
 		if (validation.isValide()) {
 			// creation de l'obkjet meteo
 			Meteo meteo = new Meteo();
 			meteo.setLieu(lieu);
-			meteo.setType(type);
+			meteo.setTemps(Temps.valueOf(type));
 			meteo.setDate(date);
+			meteo.setMin(Double.parseDouble(minimum));
+			meteo.setMax(Double.parseDouble(maximum));
+			meteo.setMoy(Double.parseDouble(moyenne));
+			
 
 			ServeurRmi serveur=Manager.creer(request).getServeur();
 			serveur.ouvrir();

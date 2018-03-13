@@ -19,12 +19,15 @@ public class Meteo implements Serializable {
 	private Temps temps;	
 	
 	
+	
+	
+	
 	@Override
 	public String toString() {
-		return "Meteo [lieu=" + lieu + ", type=" + temps + ", date=" + date + "]";
+		return "Meteo [lieu=" + lieu + ", date=" + date + ", idMeteo=" + idMeteo + ", min=" + min + ", max=" + max
+				+ ", moy=" + moy + ", temps=" + temps + "]";
 	}
-	
-	
+
 	public String getLieu() {
 		return lieu;
 	}

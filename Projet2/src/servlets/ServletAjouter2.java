@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import beans.formulaires.FormulaireAjouter2;
 import beans.meteo.Meteo;
+import beans.meteo.Temps;
 import interfaceRmi.ServeurRmi;
 import manager.Manager;
 import validation.Validation;
@@ -39,6 +40,9 @@ public class ServletAjouter2 extends HttpServlet {
 		String type = (String) request.getParameter("type");
 		String date1 = (String) request.getParameter("date1");
 		String date2 = (String) request.getParameter("date2");
+		String minimum = (String) request.getParameter("minimum");
+		String maximum = (String) request.getParameter("maximum");
+		String moyenne = (String) request.getParameter("moyenne");
 
 		// debut de la validation du formulaire
 		FormulaireAjouter2 formulaireAjouter2 = new FormulaireAjouter2();
@@ -46,14 +50,21 @@ public class ServletAjouter2 extends HttpServlet {
 		formulaireAjouter2.setDate2(date2);
 		formulaireAjouter2.setLieu(lieu);
 		formulaireAjouter2.setType(type);
+		formulaireAjouter2.setMinimum(minimum);
+		formulaireAjouter2.setMaximum(maximum);
+		formulaireAjouter2.setMoyenne(moyenne);
 		Validation validation = formulaireAjouter2.getValidation();
 		
 		if (validation.isValide()) {
 			// creation de l'obkjet meteo
 			Meteo meteo1 = new Meteo();
 			meteo1.setLieu(lieu);
-			meteo1.setType(type);
+			meteo1.setTemps(Temps.valueOf(type));
 			meteo1.setDate(date1);
+			
+			meteo1.setMin(Double.parseDouble(minimum));
+			meteo1.setMax(Double.parseDouble(maximum));
+			meteo1.setMoy(Double.parseDouble(moyenne));
 			
 			Calendar calendar = Calendar.getInstance();
 			String [] tabDate = date2.split("/");

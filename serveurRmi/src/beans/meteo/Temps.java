@@ -1,6 +1,8 @@
 package beans.meteo;
 
-public enum Temps {
+import java.io.Serializable;
+
+public enum Temps  implements Serializable {
 	
 	PLUIE ("Pluie"),SOLEIL("Soleil"),NUAGE("Nuage"),NEIGE("Neige");
 	

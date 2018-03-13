@@ -11,8 +11,42 @@ public class FormulaireAjouter {
 	@Regexp(expr = ".{2,}", value = "selectionner un type")
 	private String type;
 	
+	@Regexp(expr = ".{1,}", value = "selectionner une temerature")
+	private String minimum;
+	
+	@Regexp(expr = ".{1,}", value = "selectionner une temerature")
+	private String maximum;
+	
+	@Regexp(expr = ".{1,}", value = "selectionner une temerature")
+	private String moyenne;
+	
 	@Regexp(expr = "[0-9]{2}/[0-9]{2}/[0-9]{4}", value = "Il faut une date")
 	private String date;
+
+	
+	public String getMinimum() {
+		return minimum;
+	}
+
+	public void setMinimum(String minimum) {
+		this.minimum = minimum;
+	}
+
+	public String getMaximum() {
+		return maximum;
+	}
+
+	public void setMaximum(String maximum) {
+		this.maximum = maximum;
+	}
+
+	public String getMoyenne() {
+		return moyenne;
+	}
+
+	public void setMoyenne(String moyenne) {
+		this.moyenne = moyenne;
+	}
 
 	public String getLieu() {
 		return lieu;
@@ -45,6 +79,10 @@ public class FormulaireAjouter {
 		validation.regexp(FormulaireAjouter.class, "lieu", this.getLieu());
 		validation.regexp(FormulaireAjouter.class, "type", this.getType());
 		validation.regexp(FormulaireAjouter.class, "date", this.getDate());
+		
+		validation.regexp(FormulaireAjouter.class, "minimum", this.getMinimum());
+		validation.regexp(FormulaireAjouter.class, "moyenne", this.getMoyenne());
+		validation.regexp(FormulaireAjouter.class, "maximum", this.getMaximum());
 		
 		return validation;
 	}

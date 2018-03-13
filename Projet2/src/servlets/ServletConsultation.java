@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import beans.meteo.Meteo;
+import beans.meteo.Temps;
 import interfaceRmi.ServeurRmi;
 import manager.Manager;
 
@@ -56,7 +57,7 @@ public class ServletConsultation extends HttpServlet {
 			
 			Meteo meteo = new Meteo();
 			meteo.setLieu(lieu);
-			meteo.setType(type);
+			meteo.setTemps(Temps.valueOf(type));
 			String [] tabeDate = date.split("-");
 			date = tabeDate[2] +"/"+tabeDate[1]+"/"+tabeDate[0];
 			meteo.setDate(date);
