@@ -11,15 +11,17 @@ public class Meteo implements Serializable {
 	 */
 	private static final long serialVersionUID = 1L;
 	private String lieu;
-	private String type;
 	private Date date;
-	
-	
+	private int idMeteo;
+	private Double min; 
+	private Double max ;
+	private Double moy;
+	private Temps temps;	
 	
 	
 	@Override
 	public String toString() {
-		return "Meteo [lieu=" + lieu + ", type=" + type + ", date=" + date + "]";
+		return "Meteo [lieu=" + lieu + ", type=" + temps + ", date=" + date + "]";
 	}
 	
 	
@@ -31,13 +33,7 @@ public class Meteo implements Serializable {
 		this.lieu = lieu;
 	}
 	
-	public String getType() {
-		return type;
-	}
-	
-	public void setType(String type) {
-		this.type = type;
-	}
+
 	
 	public Date getDate() {
 		return date;
@@ -58,9 +54,60 @@ public class Meteo implements Serializable {
 	}
 	
 	
+	
+	
+	public int getIdMeteo() {
+		return idMeteo;
+	}
+
+
+	public void setIdMeteo(int idMeteo) {
+		this.idMeteo = idMeteo;
+	}
+
+
+	public Double getMin() {
+		return min;
+	}
+
+
+	public void setMin(Double min) {
+		this.min = min;
+	}
+
+
+	public Double getMax() {
+		return max;
+	}
+
+
+	public void setMax(Double max) {
+		this.max = max;
+	}
+
+
+	public Double getMoy() {
+		return moy;
+	}
+
+
+	public void setMoy(Double moy) {
+		this.moy = moy;
+	}
+
+	public Temps getTemps() {
+		return temps;
+	}
+
+
+	public void setTemps(Temps temps) {
+		this.temps = temps;
+	}
+
+
 	/**
-	 * si la date et la ville sont egaux return true
-	 * else return false
+	 * si les atribut date et  ville sont egaux retourne true
+	 * sinon retourne false
 	 */
 	@Override
 	public boolean equals(Object o) {

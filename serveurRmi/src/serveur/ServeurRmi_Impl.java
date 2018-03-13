@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.ResourceBundle;
 
 import beans.meteo.Meteo;
+import beans.meteo.Temps;
 import beans.utilisateur.Utilisateur;
 import interfaceRmi.ServeurRmi;
 
@@ -182,7 +183,7 @@ public class ServeurRmi_Impl implements ServeurRmi {
 			while (resultSet.next()) {
 				Meteo meteo = new Meteo();
 				meteo.setLieu(resultSet.getString("lieu"));
-				meteo.setType(resultSet.getString("type"));
+				meteo.setTemps(Temps.valueOf(resultSet.getString("type")));
 				meteo.setDate(resultSet.getDate("date"));
 				meteos.add(meteo);
 			}
@@ -205,7 +206,7 @@ public class ServeurRmi_Impl implements ServeurRmi {
 				String req = "INSERT INTO `t_meteo` (`idMeteo`, `lieu`, `type`, `date`) VALUES (NULL, ?, ?, ?)";
 				PreparedStatement preparedStatement = this.connection.prepareStatement(req);
 				preparedStatement.setString(1, meteo.getLieu());
-				preparedStatement.setString(2, meteo.getType());
+				preparedStatement.setString(2, meteo.getTemps().toString());
 				preparedStatement.setDate(3, meteo.getDate());
 				preparedStatement.executeUpdate();
 				preparedStatement.close();
@@ -226,7 +227,7 @@ public class ServeurRmi_Impl implements ServeurRmi {
 			String req = "DELETE FROM `t_meteo` WHERE `t_meteo`.`lieu` = ? and `t_meteo`.`type` = ? and `t_meteo`.`date` = ?;";
 			PreparedStatement preparedStatement = this.connection.prepareStatement(req);
 			preparedStatement.setString(1, meteo.getLieu());
-			preparedStatement.setString(2, meteo.getType());
+			preparedStatement.setString(2, meteo.getTemps().toString());
 			preparedStatement.setDate(3, meteo.getDate());
 
 			preparedStatement.executeUpdate();
@@ -250,7 +251,7 @@ public class ServeurRmi_Impl implements ServeurRmi {
 				Meteo res = new Meteo();
 				int idMeteo = resultSet.getInt("idMeteo");
 				res.setLieu(resultSet.getString("lieu"));
-				res.setType(resultSet.getString("type"));
+				res.setTemps(Temps.valueOf(resultSet.getString("type")));
 				res.setDate(resultSet.getDate("date"));
 				if (meteo.equals(res)) {
 					return idMeteo;
@@ -272,7 +273,7 @@ public class ServeurRmi_Impl implements ServeurRmi {
 			String req = "UPDATE `t_meteo` SET `lieu` = ?, `type` = ?, `date` = ? WHERE `t_meteo`.`idMeteo` = ?";
 			PreparedStatement preparedStatement = this.connection.prepareStatement(req);
 			preparedStatement.setString(1, meteo.getLieu());
-			preparedStatement.setString(2, meteo.getType());
+			preparedStatement.setString(2, meteo.getTemps().toString());
 			preparedStatement.setDate(3, meteo.getDate());
 			preparedStatement.setInt(4, idMeteo);
 
