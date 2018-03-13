@@ -17,7 +17,7 @@ public class ClientRmi {
 			ServeurRmi serveur =(ServeurRmi) registry.lookup("serveurRmi");
 			
 			System.out.println("Connexion :"+serveur.ouvrir());
-			System.out.println("Connexion :"+serveur.getMeteo().toString());
+
 			
 			serveur.fermer();
 		}

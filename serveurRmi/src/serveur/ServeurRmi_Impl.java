@@ -49,12 +49,13 @@ public class ServeurRmi_Impl implements ServeurRmi {
 			String url = rs.getString("url");
 			String user = rs.getString("user");
 			String password = rs.getString("password");
-			this.connection = DriverManager.getConnection(url, user, password);
-			return true;
+			this.connection = DriverManager.getConnection(url, user, password);			
 		} catch (Exception e) {
 			System.out.println("Erreur Base.ouvrir " + e.getMessage());
 			return false;
 		}
+		System.out.println("Nouvelle Connexion");
+		return true;
 	}
 
 	@Override
@@ -66,6 +67,7 @@ public class ServeurRmi_Impl implements ServeurRmi {
 				System.out.println("Erreur Base.fermer " + e.getMessage());
 			}
 		}
+		System.out.println("Fermeture de la Connexion");
 		
 	}
 
@@ -92,7 +94,7 @@ public class ServeurRmi_Impl implements ServeurRmi {
 		} catch (SQLException e) {
 			System.out.println("Erreur Base.identification " + e.getMessage());
 		}
-
+		System.out.println("Nouvelle authentification");
 		return false;
 	}
 
@@ -119,7 +121,7 @@ public class ServeurRmi_Impl implements ServeurRmi {
 		} catch (SQLException e) {
 			System.out.println("Erreur Base.dejaInscrit " + e.getMessage());
 		}
-
+		System.out.println("Recherche d'un utilisateur");
 		return false;
 	}
 
@@ -137,40 +139,10 @@ public class ServeurRmi_Impl implements ServeurRmi {
 		} catch (SQLException e) {
 			System.out.println("Erreur Base.inscription " + e.getMessage());
 		}
-		
+		System.out.println("Nouvelle Incription");
 	}
 
-	@Override
-	public void enregistrerImage(int idImage, String nomFichier)throws RemoteException {
-		try {
-			String req = "SELECT image FROM t_image WHERE idImage=?";
-
-			PreparedStatement preparedStatement = connection.prepareStatement(req);
-			preparedStatement.setInt(1, idImage);
-			ResultSet resultSet = preparedStatement.executeQuery();
-			
-			File file = new File(nomFichier);
-			if (!file.exists()) {
-				file.createNewFile();
-			}
-			FileOutputStream fileOutputStream = new FileOutputStream(file);
-
-			System.out.println("Writing to file " + file.getAbsolutePath());
-			while (resultSet.next()) {
-				InputStream input = resultSet.getBinaryStream("image");
-				byte[] buffer = new byte[1024];
-				while (input.read(buffer) > 0) {
-					fileOutputStream.write(buffer);
-				}
-			}
-			fileOutputStream.close();
-
-	} catch (SQLException | IOException e) {
-		System.out.println(e.getMessage());
-	}
-
-		
-	}
+	
 
 	@Override
 	public List<Meteo> getMeteo() throws RemoteException{
@@ -199,18 +171,19 @@ public class ServeurRmi_Impl implements ServeurRmi {
 		} catch (SQLException e) {
 			System.out.println("Erreur Base.getMeteo " + e.getMessage());
 		}
-
+		System.out.println("Recuperation des donnees meteo");
 		return meteos;
 	}
 
 	@Override
-	public void ajouterMeteo(Meteo meteo)throws RemoteException {
+	public int ajouterMeteo(Meteo meteo)throws RemoteException {
+		int key=-1;
 		try {
 
 			int idMeteo;
 			if((idMeteo = this.meteoExiste(meteo)) == -1 ) {
 				String req = "INSERT INTO `t_meteo` (`idMeteo`, `lieu`, `type`, `date`, `minimum`, `maximum`, `moyenne`) VALUES (NULL, ?,?,?,?,?,?)";
-				PreparedStatement preparedStatement = this.connection.prepareStatement(req);
+				PreparedStatement preparedStatement = this.connection.prepareStatement(req,PreparedStatement.RETURN_GENERATED_KEYS);
 				preparedStatement.setString(1, meteo.getLieu());
 				preparedStatement.setString(2, meteo.getTemps().toString());
 				preparedStatement.setDate(3, meteo.getDate());
@@ -218,6 +191,11 @@ public class ServeurRmi_Impl implements ServeurRmi {
 				preparedStatement.setDouble(5, meteo.getMax());
 				preparedStatement.setDouble(6, meteo.getMoy());
 				preparedStatement.executeUpdate();
+				ResultSet rs =preparedStatement.getGeneratedKeys();
+				
+				if (rs != null && rs.next()) {
+				    key = rs.getInt(1);
+				}
 				preparedStatement.close();
 			}else {
 				this.majMeteo(meteo, idMeteo);
@@ -226,18 +204,18 @@ public class ServeurRmi_Impl implements ServeurRmi {
 		} catch (SQLException e) {
 			System.out.println("Erreur Base.addMeteo " + e.getMessage());
 		}
+		System.out.println("Ajout d'une meteo");
+		return key;
 		
 	}
 
 	@Override
-	public void supprimerMeteo(Meteo meteo)throws RemoteException {
+	public void supprimerMeteo(int id)throws RemoteException {
 		try {
 
-			String req = "DELETE FROM `t_meteo` WHERE `t_meteo`.`lieu` = ? and `t_meteo`.`type` = ? and `t_meteo`.`date` = ?;";
+			String req = "DELETE FROM `t_meteo` WHERE t_meteo.idMeteo= ?;";
 			PreparedStatement preparedStatement = this.connection.prepareStatement(req);
-			preparedStatement.setString(1, meteo.getLieu());
-			preparedStatement.setString(2, meteo.getTemps().toString());
-			preparedStatement.setDate(3, meteo.getDate());
+			preparedStatement.setInt(1, id);
 
 			preparedStatement.executeUpdate();
 
@@ -246,6 +224,7 @@ public class ServeurRmi_Impl implements ServeurRmi {
 		} catch (SQLException e) {
 			System.out.println("Erreur Base.addMeteo " + e.getMessage());
 		}
+		System.out.println("Supprimer une meteo");
 	}
 
 	@Override
@@ -272,6 +251,7 @@ public class ServeurRmi_Impl implements ServeurRmi {
 		} catch (SQLException e) {
 			System.out.println("Erreur Base.getMeteo " + e.getMessage());
 		}
+		System.out.println("Recherche existence d'une meteo");
 		return -1;
 	}
 
@@ -293,7 +273,7 @@ public class ServeurRmi_Impl implements ServeurRmi {
 		} catch (SQLException e) {
 			System.out.println("Erreur Base.updateMeteo " + e.getMessage());
 		}
-		
+		System.out.println("Mise a jour d'une meteo");
 	}
 
 	@Override
@@ -309,6 +289,7 @@ public class ServeurRmi_Impl implements ServeurRmi {
 			date = new Date(calendar.getTimeInMillis());
 			meteo.setDate(date);
 		}
+		System.out.println("Ajout de plusieurs meteos");
 	}		
 	
 	
@@ -331,13 +312,12 @@ public class ServeurRmi_Impl implements ServeurRmi {
 				    key = rs.getInt(1);
 				}
 				
-				this.ajouterJointure(idMeteo, key);
-				
-			
+				this.ajouterJointure(idMeteo, key);		
 
 		} catch (SQLException e) {
 			
 		}
+		System.out.println("Ajout d'une image");
 	}	
 
 	
@@ -354,6 +334,7 @@ public class ServeurRmi_Impl implements ServeurRmi {
 		} catch (SQLException e) {
 			
 		}
+		System.out.println("Ajout jointure");
 	}
 
 	@Override
@@ -387,7 +368,7 @@ public class ServeurRmi_Impl implements ServeurRmi {
 		} catch (SQLException e) {
 			System.out.println("Erreur serveur.listeImages " + e.getMessage());
 		}
-		
+		System.out.println("Recuperation de la liste d'image d'une meteo");
 		return images;
 	}
 

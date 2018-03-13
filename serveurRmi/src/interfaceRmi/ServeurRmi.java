@@ -30,13 +30,12 @@ public interface ServeurRmi extends Remote {
 
 	public void inscription(Utilisateur utilisateur)throws RemoteException;
 	
-	public void enregistrerImage(int candidateId, String filename) throws RemoteException;		
 
 	public List<Meteo> getMeteo()throws RemoteException; 
 
-	public void ajouterMeteo(Meteo meteo)throws RemoteException;
+	public int ajouterMeteo(Meteo meteo)throws RemoteException;
 
-	public void supprimerMeteo(Meteo meteo)throws RemoteException;
+	public void supprimerMeteo(int id)throws RemoteException;
 
 	public int meteoExiste(Meteo meteo) throws RemoteException;
 

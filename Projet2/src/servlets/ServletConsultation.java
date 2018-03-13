@@ -66,7 +66,7 @@ public class ServletConsultation extends HttpServlet {
 			try {
 				ServeurRmi serveur=Manager.creer(request).getServeur();
 				serveur.ouvrir();
-				serveur.supprimerMeteo(meteo);
+				//serveur.supprimerMeteo(meteo);
 				serveur.fermer();				
 			}
 			catch (Exception e) {
