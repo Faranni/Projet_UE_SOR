@@ -1,10 +1,13 @@
 package serveur;
 
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -19,6 +22,20 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.ResourceBundle;
+
+import javax.imageio.ImageIO;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.PDPageContentStream.AppendMode;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.common.PDStream;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
+import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 
 import beans.meteo.Image;
 import beans.meteo.Meteo;
@@ -387,7 +404,7 @@ public class ServeurRmi_Impl implements ServeurRmi {
 		
 		List<Image> images=new ArrayList<Image>();
 		try {		
-			String req = "select t_image.image,t_image.idImage from t_meteo_image,t_image where  t_meteo_image.idMeteo=?";
+			String req = "select t_image.image,t_image.idImage from t_meteo_image,t_image where t_image.idImage=t_meteo_image.idImage AND t_meteo_image.idMeteo=?";
 			PreparedStatement preparedStatement = this.connection.prepareStatement(req);
 
 			preparedStatement.setInt(1,id);
@@ -409,11 +426,11 @@ public class ServeurRmi_Impl implements ServeurRmi {
 		} catch (SQLException e) {
 			System.out.println("Erreur serveur.listeImages " + e.getMessage());
 		}
-		System.out.println("Recuperation de la liste d'image d'une meteo :"+images.size());
+		System.out.println("Recuperation de la liste d'image d'une meteo :"+images.size()+" element(s)");
 		return images;
 	}
 
-public static void main(String [] args) {
+	public static void main(String [] args) {
 		
 		int port = 3000;
 		
@@ -448,6 +465,113 @@ public static void main(String [] args) {
 
 		
 		System.out.println("Serveur RMI lanc√©");
+	}
+
+	@Override
+	public void ajouterListeMeteo(List<Meteo> listeMeteo) throws RemoteException {
+		for (int i=0;i<listeMeteo.size();i++) {
+			this.ajouterMeteo(listeMeteo.get(i));
+		}
+		System.out.println("Ajout d'une liste de meteo : "+listeMeteo.size()+" element(s)");
+	}
+
+	@Override
+	public byte[] generationPdf() throws RemoteException {
+		PDDocument document = new PDDocument();
+		PDPage nouvellePage = new PDPage(PDRectangle.A4);
+		byte[] pdf = null;	
+		
+		try {			
+			
+			PDPageContentStream contentStream = new PDPageContentStream(document, nouvellePage,PDPageContentStream.AppendMode.APPEND,true,true);
+
+		    contentStream.beginText();	     
+		    contentStream.setFont(PDType1Font.TIMES_ROMAN, 20);
+		    int positionY=800;
+		    int pasY=100;
+		    contentStream.newLineAtOffset(200, positionY);
+		    String titre = "DonnÈes MÈtÈo";		    	
+	    	contentStream.showText(titre);
+	    	System.out.println("titre");
+	    	
+	    	contentStream.setFont(PDType1Font.TIMES_ROMAN, 12);
+	    	positionY-=60;
+	    	contentStream.newLineAtOffset(-175, -pasY);		  
+		    
+		    List<Meteo> listeMeteo=this.getMeteo();
+		    for(int i=0;i<listeMeteo.size();i++) {
+		    	System.out.println("info");
+		    	
+		    	Meteo m=listeMeteo.get(i);
+		    	String ligne1 = m.getLieu()+"          ";
+		    	ligne1 +=m.getDate().toString()+"         "+m.getTemps().toString();
+		    
+		    	String ligne2="temperature max:"+m.getMin()+" ∞c         ";
+		    	ligne2 +="temperature min:"+m.getMax()+" ∞c           ";
+		    	ligne2 +="temperature moy:"+m.getMoy()+" ∞c           ";
+		    	contentStream.showText(ligne1);
+		    	contentStream.newLineAtOffset(0,-30);
+		    	contentStream.showText(ligne2);
+		    	
+		    	List<Image> listeImage=this.getlisteImage(m.getIdMeteo());
+		    	System.out.println("image");
+		    	for(int y=0;y<listeImage.size();y++) {	
+		    		PDPageContentStream contentImage = new PDPageContentStream(document, nouvellePage,PDPageContentStream.AppendMode.APPEND,true,true);
+		    		PDImageXObject image = JPEGFactory.createFromByteArray(document,listeImage.get(y).getImage());
+		    		PDImageXObject image2 = LosslessFactory.createFromImage(document, image.getImage());
+		    		
+		    		System.out.println("test 1 : "+image2.getHeight()+" X "+image2.getWidth());
+		    		double coef=this.coeficientReductionImage(image2.getWidth(), image2.getHeight());
+		    		
+		    		contentImage.drawImage(image2, 25+(50*y),positionY-50,(int)(image2.getWidth()/coef),(int)(image2.getHeight()/coef));
+		    		
+		    		contentImage.close();
+		    	}
+		    	contentStream.newLine();		    	
+		    	contentStream.newLineAtOffset(0, -pasY);
+		    	positionY-=pasY;
+		    	
+		    }
+		    
+		      
+
+		    contentStream.endText();
+		    System.out.println("Content added");
+		    contentStream.close();
+		      
+		      
+		} catch (IOException e) {
+			System.out.println("Erreur PDf");
+			e.printStackTrace();
+		}
+	      
+		 document.addPage(nouvellePage);
+		 System.out.println("document :"+document.getNumberOfPages());
+		 ByteArrayOutputStream out = new ByteArrayOutputStream();
+		 try {			
+			document.save(out);           
+			pdf=out.toByteArray();
+		} catch (IOException e) {			
+			e.printStackTrace();
+		}
+		 
+		try {
+			document.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return pdf;
+	}
+	
+	private float  coeficientReductionImage(int larg, int haut) {
+		int maxHauteur=40;
+		int maxLargeur=40;
+		if(larg>haut) {
+			return larg/maxLargeur;
+		}else {
+			return haut/maxHauteur;
+		}
 	}
 
 

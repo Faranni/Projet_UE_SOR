@@ -12,15 +12,18 @@
 						<i class="material-icons circle green">insert_chart</i>
 					</c:if>
 					<c:if test="${! entry.value.isEmpty()}">
-						<i class="material-icons circle green">broken_image</i>
-						<!--  <img src="${pageContext.servletContext.contextPath}/ServletImage?tab=${ entry.value.get(0).image }" /> -->
+						<div>
+						<c:forEach var="image" items="${entry.value}">
+							<img src="data:image/png;base64,${ image }"/>
+						</c:forEach>
+						</div>
 					</c:if>
-					
+
 				</div>
 				<div class="col s4">
 					<p>
-						<span class="title">${ entry.key.lieu }</span>
-						<br>${ entry.key.date }<br> ${ entry.key.temps }
+						<span class="title">${ entry.key.lieu }</span> <br>${ entry.key.date }<br>
+						${ entry.key.temps }
 					</p>
 				</div>
 				<div class="col s2">
@@ -28,22 +31,24 @@
 						${ entry.key.min }<br> ${ entry.key.max }<br> ${ entry.key.moy }
 					</p>
 				</div>
-				<div class="col s1">
-					<form action="ServletConsultation" method="post">
-						<input type="hidden" value="${entry.key.idMeteo}" name="idMeteo">
-						<button type="submit" name="editer">
-							<i class="material-icons">edit</i>
-						</button>
-					</form>
-				</div>
-				<div class="col s1">
-					<form action="ServletConsultation" method="post">
-						<input type="hidden" value="${entry.key.idMeteo}" name="idMeteo">
-						<button type="submit" name="supprimer">
-							<i class="material-icons">delete</i>
-						</button>
-					</form>
-				</div>
+				<c:if test="${ manager.identifier }">
+					<div class="col s1">
+						<form action="ServletConsultation" method="post">
+							<input type="hidden" value="${entry.key.idMeteo}" name="idMeteo">
+							<button type="submit" name="editer">
+								<i class="material-icons">edit</i>
+							</button>
+						</form>
+					</div>
+					<div class="col s1">
+						<form action="ServletConsultation" method="post">
+							<input type="hidden" value="${entry.key.idMeteo}" name="idMeteo">
+							<button type="submit" name="supprimer">
+								<i class="material-icons">delete</i>
+							</button>
+						</form>
+					</div>
+				</c:if>
 			</div>
 
 		</li>

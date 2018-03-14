@@ -1,6 +1,8 @@
 package servlets;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,24 +34,30 @@ public class ServletConsultation extends HttpServlet {
 			ServeurRmi serveur = Manager.creer(request).getServeur();
 
 			serveur.ouvrir();
-			Map<Meteo,List<Image>> mapMeteo = new HashMap<>(); 
+			Map<Meteo, List<String>> mapMeteo = new HashMap<>();
 			List<Meteo> listeMeteo = serveur.getMeteo();
-			for(Meteo  meteo : listeMeteo) {
+			for (Meteo meteo : listeMeteo) {
 				List<Image> listeImage = serveur.getlisteImage(meteo.getIdMeteo());
-				System.out.println(listeImage.toString());
-				mapMeteo.put(meteo, listeImage);
+				System.out.println(listeImage);
+				List<String> listByte = new ArrayList<>();
+				for (Image image : listeImage) {
+					byte[] encodeBase64 = Base64.getEncoder().encode(image.getImage());
+					String base64Encoded = new String(encodeBase64, "UTF-8");
+					listByte.add(base64Encoded);
+				}
+
+				mapMeteo.put(meteo, listByte);
 			}
-			
+
 			serveur.fermer();
-			
-			
+
 			request.setAttribute("mapMeteo", mapMeteo);
 			request.setAttribute("titre", "Consulation");
 			request.setAttribute("contenu", "/WEB-INF/consulation/Consulation.jsp");
 			request.getServletContext().getRequestDispatcher("/WEB-INF/models/model.jsp").forward(request, response);
 
 		} catch (Exception e) {
-			System.out.println("Erreur client RMI");
+			System.out.println("Erreur client RMI :" + e.getMessage());
 		}
 
 	}

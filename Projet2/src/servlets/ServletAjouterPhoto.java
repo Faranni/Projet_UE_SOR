@@ -82,6 +82,9 @@ public class ServletAjouterPhoto extends HttpServlet {
 						serveur.ajouterImage(idMeteo, image);
 						serveur.fermer();
 						
+						// redirection vers la servlet consultation
+						response.sendRedirect("ServletConsultation");
+						
 					} else {
 						ServeurRmi serveur=Manager.creer(request).getServeur();
 						serveur.ouvrir();
