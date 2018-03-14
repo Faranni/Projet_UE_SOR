@@ -1,6 +1,7 @@
 package servlets;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -13,12 +14,15 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.tomcat.util.http.fileupload.FileItem;
 import org.apache.tomcat.util.http.fileupload.FileItemFactory;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
+import org.apache.commons.io.IOUtils;
 import org.apache.tomcat.util.http.fileupload.disk.DiskFileItemFactory;
 import org.apache.tomcat.util.http.fileupload.servlet.ServletFileUpload;
 
-
 import beans.formulaires.FormulaireAjouterPhoto;
-
+import beans.meteo.Image;
+import beans.meteo.Meteo;
+import interfaceRmi.ServeurRmi;
+import manager.Manager;
 import validation.Validation;
 
 @WebServlet("/ServletAjouterPhoto")
@@ -31,6 +35,13 @@ public class ServletAjouterPhoto extends HttpServlet {
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
+		
+		ServeurRmi serveur=Manager.creer(request).getServeur();
+		serveur.ouvrir();
+		List<Meteo> listeMeteo = serveur.getMeteo();
+		serveur.fermer();
+		
+		request.setAttribute("listeMeteo", listeMeteo);
 		request.setAttribute("titre", "Ajouter Photo");
 		request.setAttribute("contenu", "/WEB-INF/ajouter/AjouterPhoto.jsp");
 		request.getServletContext().getRequestDispatcher("/WEB-INF/models/model.jsp").forward(request, response);
@@ -57,20 +68,27 @@ public class ServletAjouterPhoto extends HttpServlet {
 					Validation validation = formulaireAjouterPhoto.getValidation();
 
 					if (validation.isValide()) {
-						/*ServeurRmi serveur=Manager.creer(request).getServeur();
+
+						int idMeteo = Integer.parseInt(itemsMap.get("idMeteo").get(0).getString());
+						
+						InputStream inputStream = itemsMap.get("imageFile").get(0).getInputStream();		
+						Image image = new Image();
+						image.setImage(IOUtils.toByteArray(inputStream));
+						System.out.println(image.getImage());
+						
+						
+						ServeurRmi serveur=Manager.creer(request).getServeur();
 						serveur.ouvrir();
-						
-						int idMeteo = Integer.parseInt(formulaireAjouterPhoto.getIdMeteo());
-						int idImage = serveur.addImage(idMeteo, itemsMap.get("imageName").get(0).getInputStream());
-						serveur.saveImage(idImage, "path");
-						serveur.delImage(idImage);
---------------------------------------------------------------------------------------------------------------------------------------
-						
-						System.out.println(idImage);
-						
+						serveur.ajouterImage(idMeteo, image);
 						serveur.fermer();
-						*/
+						
 					} else {
+						ServeurRmi serveur=Manager.creer(request).getServeur();
+						serveur.ouvrir();
+						List<Meteo> listeMeteo = serveur.getMeteo();
+						serveur.fermer();
+						
+						request.setAttribute("listeMeteo", listeMeteo);
 						request.setAttribute("validation", validation);
 						request.setAttribute("erreur", "Il y a une erreur dans le formulaire d'ajoue de photo");
 						request.setAttribute("titre", "Ajouter Photo");

@@ -259,12 +259,15 @@ public class ServeurRmi_Impl implements ServeurRmi {
 	public void majMeteo(Meteo meteo, int idMeteo)throws RemoteException {
 		try {
 
-			String req = "UPDATE `t_meteo` SET `lieu` = ?, `type` = ?, `date` = ? WHERE `t_meteo`.`idMeteo` = ?";
+			String req = "UPDATE `t_meteo` SET `lieu` = ?, `type` = ?, `date` = ? ,`minimum` = ?, `maximum` = ?, `moyenne` = ? WHERE `t_meteo`.`idMeteo` = ?";
 			PreparedStatement preparedStatement = this.connection.prepareStatement(req);
 			preparedStatement.setString(1, meteo.getLieu());
 			preparedStatement.setString(2, meteo.getTemps().toString());
 			preparedStatement.setDate(3, meteo.getDate());
-			preparedStatement.setInt(4, idMeteo);
+			preparedStatement.setDouble(4, meteo.getMin());
+			preparedStatement.setDouble(5, meteo.getMax());
+			preparedStatement.setDouble(6, meteo.getMoy());
+			preparedStatement.setInt(7, idMeteo);
 
 			preparedStatement.executeUpdate();
 
@@ -339,8 +342,44 @@ public class ServeurRmi_Impl implements ServeurRmi {
 
 	@Override
 	public int supprimerImage(int idImage) throws RemoteException {
-		// TODO Auto-generated method stub
-		return 0;
+		int key=-1;
+		try {
+
+			String req = "DELETE FROM `t_image` WHERE t_image.idImage= ?;";
+			PreparedStatement preparedStatement = this.connection.prepareStatement(req,PreparedStatement.RETURN_GENERATED_KEYS);
+			preparedStatement.setInt(1, idImage);
+
+			preparedStatement.executeUpdate();
+			ResultSet rs =preparedStatement.getGeneratedKeys();
+			
+			if (rs != null && rs.next()) {
+			    key = rs.getInt(1);
+			}
+			preparedStatement.close();
+			this.supprimerJointure(key);
+		} catch (SQLException e) {
+			System.out.println("Erreur serveur.SupprimerImage " + e.getMessage());
+		}
+		System.out.println("Supprimer une meteo");
+		
+		return key;
+	}
+	
+	private void supprimerJointure(int id) {
+		try {
+			String req = "DELETE FROM `t_meteo_image` WHERE t_meteo_image.idImage= ?;";
+			PreparedStatement preparedStatement = this.connection.prepareStatement(req);
+			preparedStatement.setInt(1, id);
+
+			preparedStatement.executeUpdate();
+
+			preparedStatement.close();		
+			
+		} catch (SQLException e) {
+			System.out.println("Erreur serveur.supprimerJointure " + e.getMessage());
+		}
+
+		
 	}
 
 	@Override
@@ -348,18 +387,20 @@ public class ServeurRmi_Impl implements ServeurRmi {
 		
 		List<Image> images=new ArrayList<Image>();
 		try {		
-			String req = "select image from t_meteo_image,t_image where t_image.idImage=t_meteo_image.idImage AND t_meteo_image.idImage=?";
+			String req = "select t_image.image,t_image.idImage from t_meteo_image,t_image where  t_meteo_image.idMeteo=?";
 			PreparedStatement preparedStatement = this.connection.prepareStatement(req);
 
 			preparedStatement.setInt(1,id);
 			ResultSet rs = preparedStatement.executeQuery();
 			
-			if (rs.next()) {
+			while(rs.next()) {
+				System.out.println("image");
 				byte[] image =rs.getBytes("image");
 				int idImage=rs.getInt("idImage");
 				Image img=new Image();
 				img.setIdImage(idImage);
 				img.setImage(image);
+				System.out.println(img.toString());
 				images.add(img);
 			}
 
@@ -368,7 +409,7 @@ public class ServeurRmi_Impl implements ServeurRmi {
 		} catch (SQLException e) {
 			System.out.println("Erreur serveur.listeImages " + e.getMessage());
 		}
-		System.out.println("Recuperation de la liste d'image d'une meteo");
+		System.out.println("Recuperation de la liste d'image d'une meteo :"+images.size());
 		return images;
 	}
 

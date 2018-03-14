@@ -10,9 +10,9 @@
 		<div class="input-field col s6">
 			<select name="idMeteo">
 				<option value="" selected></option>
-				<option value="1">1</option>
-				<option value="2">2</option>
-				<option value="3">3</option>
+				<c:forEach items="${listeMeteo}" var="meteo">
+					<option value="${meteo.idMeteo}">${meteo.lieu} ${meteo.date}</option>
+				</c:forEach>
 			</select> <label>Meteo</label>
 		</div>
 		<c:if test="${validation.erreurs['idMeteo']  != null}">
