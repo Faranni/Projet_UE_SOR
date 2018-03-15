@@ -278,19 +278,23 @@ public class ServeurRmi_Impl implements ServeurRmi {
 	@Override
 	public void supprimerMeteo(int id)throws RemoteException {
 		try {
-
+			List<Image> listeImage=this.getlisteImage(id);
+			for(int i=0;i<listeImage.size();i++) {
+				this.supprimerImage(listeImage.get(i).getIdImage());
+			}
+			
 			String req = "DELETE FROM `t_meteo` WHERE t_meteo.idMeteo= ?;";
 			PreparedStatement preparedStatement = this.connection.prepareStatement(req);
 			preparedStatement.setInt(1, id);
 
 			preparedStatement.executeUpdate();
-
 			preparedStatement.close();
 
 		} catch (SQLException e) {
 			System.out.println("Erreur Base.addMeteo " + e.getMessage());
 		}
 		System.out.println("Supprimer une meteo");
+		
 	}
 
 	@Override
@@ -412,17 +416,12 @@ public class ServeurRmi_Impl implements ServeurRmi {
 		try {
 
 			String req = "DELETE FROM `t_image` WHERE t_image.idImage= ?;";
-			PreparedStatement preparedStatement = this.connection.prepareStatement(req,PreparedStatement.RETURN_GENERATED_KEYS);
+			PreparedStatement preparedStatement = this.connection.prepareStatement(req);
 			preparedStatement.setInt(1, idImage);
+		preparedStatement.executeUpdate();			
 
-			preparedStatement.executeUpdate();
-			ResultSet rs =preparedStatement.getGeneratedKeys();
-			
-			if (rs != null && rs.next()) {
-			    key = rs.getInt(1);
-			}
 			preparedStatement.close();
-			this.supprimerJointure(key);
+			this.supprimerJointure(idImage);
 		} catch (SQLException e) {
 			System.out.println("Erreur serveur.SupprimerImage " + e.getMessage());
 		}
@@ -517,8 +516,10 @@ public class ServeurRmi_Impl implements ServeurRmi {
 		    for(int i=0;i<idMeteos.length;i++) {
 		    	listeMeteo.add(this.getMeteo(idMeteos[i]));
 		    }
+		    
 		    for(int i=0;i<listeMeteo.size();i++) {
 		    	if( positionY<(BORDURE_BAS+(2*PAS_DONNEES_Y))) {
+		    		System.out.println("Nouvelle Page");
 		    		contentStream.endText();
 		    		contentStream.close();
 		    		document.addPage(nouvellePage);
@@ -537,6 +538,9 @@ public class ServeurRmi_Impl implements ServeurRmi {
 		    	String ligne2="Minimum: "+m.getMin()+" °c         ";
 		    	ligne2 +="Maximum: "+m.getMax()+" °c           ";
 		    	ligne2 +="Moyenne:"+m.getMoy()+" °c           ";
+		    	
+		    	System.out.println(ligne1);
+		    	System.out.println(ligne2);
 		    	
 		    	contentStream.showText(ligne1);
 		    	contentStream.newLineAtOffset(0,-PAS_DONNEES_Y);
@@ -572,7 +576,7 @@ public class ServeurRmi_Impl implements ServeurRmi {
 		    	
 		    }
 		    
-		      
+		    document.addPage(nouvellePage);  
 
 		    contentStream.endText();
 		    System.out.println("Content added");

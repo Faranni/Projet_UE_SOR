@@ -28,7 +28,7 @@ public class ClientRmi {
 				ids[i]=listeMeteo.get(i).getIdMeteo();
 			}
 			
-			byte[] fichier=serveur.generationPdf(ids);
+			byte[] fichier=serveur.generationPdf(new int[] {3,26});
 			
 			System.out.println("taille fichier:"+fichier.length);
 			Path path = Paths.get("H:\\Documents\\donnee.pdf");

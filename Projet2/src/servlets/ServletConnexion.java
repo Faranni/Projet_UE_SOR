@@ -25,14 +25,14 @@ public class ServletConnexion extends HttpServlet {
 			
 	}
 
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {		
 		request.setAttribute("titre", "Connexion");
 		request.setAttribute("contenu", "/WEB-INF/connexion/Connexion.jsp");
 		request.getServletContext().getRequestDispatcher("/WEB-INF/models/model.jsp").forward(request, response);
 	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
+		
 		// on verifier que un formulaire a bien ete envoyer
 		if (request.getParameter("connexion") != null) {
 

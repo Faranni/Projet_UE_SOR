@@ -53,7 +53,7 @@ public class ServletConsultation extends HttpServlet {
 			request.setAttribute("listId", listId);
 			request.setAttribute("mapMeteo", mapMeteo);
 			request.setAttribute("titre", "Consulation");
-			request.setAttribute("contenu", "/WEB-INF/consulation/Consulation.jsp");
+			request.setAttribute("contenu", "/WEB-INF/consultation/Consultation.jsp");
 			request.getServletContext().getRequestDispatcher("/WEB-INF/models/model.jsp").forward(request, response);
 
 		} catch (Exception e) {
@@ -87,11 +87,12 @@ public class ServletConsultation extends HttpServlet {
 				String listId = "";
 				List<Meteo> listeMeteo = serveur.getMeteo();
 				for (Meteo meteo : listeMeteo) {
-					listId += meteo.getIdMeteo() + " ";
+					
 					Calendar calendar1 = Calendar.getInstance();
 					calendar1.setTime(meteo.getDate());
 					int mois2 = calendar1.get(Calendar.MONTH);
 					if (mois1 == mois2) {
+						listId += meteo.getIdMeteo() + " ";
 						List<Image> listeImage = serveur.getlisteImage(meteo.getIdMeteo());
 						List<String> listByte = new ArrayList<>();
 						for (Image image : listeImage) {
@@ -106,8 +107,8 @@ public class ServletConsultation extends HttpServlet {
 				
 				request.setAttribute("listId", listId);
 				request.setAttribute("mapMeteo", mapMeteo);
-				request.setAttribute("titre", "Consulation");
-				request.setAttribute("contenu", "/WEB-INF/consulation/Consulation.jsp");
+				request.setAttribute("titre", "Consultation");
+				request.setAttribute("contenu", "/WEB-INF/consultation/Consultation.jsp");
 				request.getServletContext().getRequestDispatcher("/WEB-INF/models/model.jsp").forward(request,
 						response);
 
@@ -125,11 +126,12 @@ public class ServletConsultation extends HttpServlet {
 				List<Meteo> listeMeteo = serveur.getMeteo();
 				String listId = "";
 				for (Meteo meteo : listeMeteo) {
-					listId += meteo.getIdMeteo() + " ";
+					
 					Calendar calendar1 = Calendar.getInstance();
 					calendar1.setTime(meteo.getDate());
 					int jour2 = calendar1.get(Calendar.DAY_OF_MONTH);
 					if (jour1 == jour2) {
+						listId += meteo.getIdMeteo() + " ";
 						List<Image> listeImage = serveur.getlisteImage(meteo.getIdMeteo());
 						List<String> listByte = new ArrayList<>();
 						for (Image image : listeImage) {
@@ -145,7 +147,7 @@ public class ServletConsultation extends HttpServlet {
 				request.setAttribute("listId", listId);
 				request.setAttribute("mapMeteo", mapMeteo);
 				request.setAttribute("titre", "Consulation");
-				request.setAttribute("contenu", "/WEB-INF/consulation/Consulation.jsp");
+				request.setAttribute("contenu", "/WEB-INF/consultation/Consultation.jsp");
 				request.getServletContext().getRequestDispatcher("/WEB-INF/models/model.jsp").forward(request,
 						response);
 
@@ -156,15 +158,29 @@ public class ServletConsultation extends HttpServlet {
 
 		if (request.getParameter("genererPdf") != null) {
 
-			String ids = (String) request.getParameter("listId");			
-			String [] tabId = ids.split(" "); 
-			
-			for(String id : tabId) {
-				System.out.println(id);
+			String ids = (String) request.getParameter("listId");					
+			String[] tabStringId = ids.split(" ");
+			if (ids != null && ids.equals("")){
+				response.sendRedirect("ServletConsultation");
+				return;
 			}
 			
-			response.sendRedirect("ServletConsultation");
+			int[] tabIntId = new int[tabStringId.length];
+			for (int i = 0; i < tabStringId.length; i++) {
+				tabIntId[i] = Integer.parseInt(tabStringId[i]);
+				System.out.println(tabIntId[i]);
+			}
+		
+			ServeurRmi serveur = Manager.creer(request).getServeur();
+			serveur.ouvrir();
+			byte [] bytes = serveur.generationPdf(tabIntId);
+			serveur.fermer();			
+			response.setContentType("application/pdf");
+			response.setHeader("Content-Disposition","attachment; filename=mydocument.pdf");
+			response.getOutputStream().write(bytes);
+		
 		}
+
 	}
 
 }

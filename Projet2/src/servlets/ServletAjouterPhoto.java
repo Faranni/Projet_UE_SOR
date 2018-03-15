@@ -35,7 +35,10 @@ public class ServletAjouterPhoto extends HttpServlet {
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		
+		if(!Manager.creer(request).isIdentifier()) {
+			response.sendRedirect("ServletConnexion");
+			return ;
+		}
 		ServeurRmi serveur=Manager.creer(request).getServeur();
 		serveur.ouvrir();
 		List<Meteo> listeMeteo = serveur.getMeteo();
@@ -49,7 +52,10 @@ public class ServletAjouterPhoto extends HttpServlet {
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-
+		if(!Manager.creer(request).isIdentifier()) {
+			response.sendRedirect("ServletConnexion");
+			return ;
+		}
 		if (ServletFileUpload.isMultipartContent(request)) {
 			FileItemFactory factory = new DiskFileItemFactory();
 			ServletFileUpload upload = new ServletFileUpload(factory);

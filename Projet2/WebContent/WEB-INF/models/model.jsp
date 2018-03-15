@@ -41,11 +41,10 @@
 						<ul id="dropdown1" class="site-nav__submenu dropdown-content">
 
 							<li><a href="ServletConsultation"
-								class="site-nav__link">des données méteo</a></li>
+								class="site-nav__link">Données météos</a></li>
 
 
-							<li><a href="#!" class="site-nav__link">Analyse des
-									données</a></li>
+							<li><a href="ServletStatistique" class="site-nav__link">Statitisques</a></li>
 
 
 						</ul></li>
@@ -58,20 +57,20 @@
 						</a>
 							<ul id="dropdown2" class="site-nav__submenu dropdown-content">
 
-								<li><a href="ServletAjouterArchive" class="site-nav__link">une archive</a></li>
+								<li><a href="ServletAjouterArchive" class="site-nav__link">Archive</a></li>
 
-								<li><a href="ServletAjouter2" class="site-nav__link">un
-										ensemble de données</a></li>
+								<li><a href="ServletAjouter2" class="site-nav__link">
+										Données météos</a></li>
 
-								<li><a href="ServletAjouter" class="site-nav__link">une
-										donnée météo</a></li>
+								<li><a href="ServletAjouter" class="site-nav__link">
+										Donnée météo</a></li>
 
-								<li><a href="ServletAjouterPhoto" class="site-nav__link">une photo</a></li>
+								<li><a href="ServletAjouterPhoto" class="site-nav__link">Photo</a></li>
 
 
 							</ul></li>
 
-						<li><a href="ServletDeconnexion">Deconnexion</a></li>
+						<li><a href="ServletDeconnexion">Déconnexion</a></li>
 						<li><a href="ServletPageUtilisateur"><i
 								class="material-icons right">face</i>Compte</a></li>
 					</c:if>

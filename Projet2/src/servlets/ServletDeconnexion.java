@@ -8,6 +8,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import manager.Manager;
+
 
 @WebServlet("/ServletDeconnexion")
 public class ServletDeconnexion extends HttpServlet {
@@ -20,6 +22,10 @@ public class ServletDeconnexion extends HttpServlet {
 
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		if(!Manager.creer(request).isIdentifier()) {
+			response.sendRedirect("ServletConnexion");
+			return ;
+		}
 		request.getSession().removeAttribute("manager");
 		response.sendRedirect("ServletAccueil");
 	}

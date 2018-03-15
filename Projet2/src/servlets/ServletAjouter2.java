@@ -28,6 +28,10 @@ public class ServletAjouter2 extends HttpServlet {
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
+		if(!Manager.creer(request).isIdentifier()) {
+			response.sendRedirect("ServletConnexion");
+			return ;
+		}
 		request.setAttribute("titre", "Ajouter2");
 		request.setAttribute("contenu", "/WEB-INF/ajouter/Ajouter2.jsp");
 		request.getServletContext().getRequestDispatcher("/WEB-INF/models/model.jsp").forward(request, response);
@@ -35,6 +39,10 @@ public class ServletAjouter2 extends HttpServlet {
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
+		if(!Manager.creer(request).isIdentifier()) {
+			response.sendRedirect("ServletConnexion");
+			return ;
+		}
 
 		String lieu = (String) request.getParameter("lieu");
 		String type = (String) request.getParameter("type");

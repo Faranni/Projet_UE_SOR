@@ -24,12 +24,19 @@ public class ServletEdition extends HttpServlet {
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
+		if(!Manager.creer(request).isIdentifier()) {
+			response.sendRedirect("ServletConnexion");
+			return ;
+		}
 		response.getWriter().append("Served at: ").append(request.getContextPath());
 	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		
+		if(!Manager.creer(request).isIdentifier()) {
+			response.sendRedirect("ServletConnexion");
+			return ;
+		}
 		// ajouter dans le formulaire des bonnes valeur
 		if (request.getParameter("edition") != null) {
 			int idMeteo = Integer.parseInt((String) request.getParameter("idMeteo"));

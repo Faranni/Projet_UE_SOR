@@ -40,7 +40,10 @@ public class ServletAjouterArchive extends HttpServlet {
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-
+		if(!Manager.creer(request).isIdentifier()) {
+			response.sendRedirect("ServletConnexion");
+			return ;
+		}
 		request.setAttribute("titre", "Ajouter Archive");
 		request.setAttribute("contenu", "/WEB-INF/ajouter/AjouterArchive.jsp");
 		request.getServletContext().getRequestDispatcher("/WEB-INF/models/model.jsp").forward(request, response);
@@ -48,7 +51,10 @@ public class ServletAjouterArchive extends HttpServlet {
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-
+		if(!Manager.creer(request).isIdentifier()) {
+			response.sendRedirect("ServletConnexion");
+			return ;
+		}
 		if (ServletFileUpload.isMultipartContent(request)) {
 			FileItemFactory factory = new DiskFileItemFactory();
 			ServletFileUpload upload = new ServletFileUpload(factory);
