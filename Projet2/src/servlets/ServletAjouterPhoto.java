@@ -74,7 +74,6 @@ public class ServletAjouterPhoto extends HttpServlet {
 						InputStream inputStream = itemsMap.get("imageFile").get(0).getInputStream();		
 						Image image = new Image();
 						image.setImage(IOUtils.toByteArray(inputStream));
-						System.out.println(image.getImage());
 						
 						
 						ServeurRmi serveur=Manager.creer(request).getServeur();

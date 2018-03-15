@@ -58,6 +58,8 @@
 						</a>
 							<ul id="dropdown2" class="site-nav__submenu dropdown-content">
 
+								<li><a href="ServletAjouterArchive" class="site-nav__link">une archive</a></li>
+
 								<li><a href="ServletAjouter2" class="site-nav__link">un
 										ensemble de données</a></li>
 
@@ -71,7 +73,7 @@
 
 						<li><a href="ServletDeconnexion">Deconnexion</a></li>
 						<li><a href="ServletPageUtilisateur"><i
-								class="material-icons right">face</i>Conmpte</a></li>
+								class="material-icons right">face</i>Compte</a></li>
 					</c:if>
 					<c:if test="${ ! manager.identifier }">
 						<li><a href="ServletInscription">Inscription</a></li>

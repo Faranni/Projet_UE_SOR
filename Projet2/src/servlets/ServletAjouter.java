@@ -32,10 +32,6 @@ public class ServletAjouter extends HttpServlet {
 		request.setAttribute("titre", "Ajouter");
 		request.setAttribute("contenu", "/WEB-INF/ajouter/Ajouter.jsp");
 		request.getServletContext().getRequestDispatcher("/WEB-INF/models/model.jsp").forward(request, response);
-		 for(Temps lang : Temps.values()){
-		  System.out.println("J'aime le : " + lang);
-		 }
-		    
 	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)

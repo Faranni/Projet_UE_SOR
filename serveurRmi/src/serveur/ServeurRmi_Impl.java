@@ -33,6 +33,7 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream.AppendMode;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.common.PDStream;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.graphics.color.PDColor;
 import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
@@ -42,10 +43,26 @@ import beans.meteo.Meteo;
 import beans.meteo.Temps;
 import beans.utilisateur.Utilisateur;
 import interfaceRmi.ServeurRmi;
+import jdk.internal.dynalink.beans.StaticClass;
 
 public class ServeurRmi_Impl implements ServeurRmi {
 	Connection connection = null;
-
+	
+	private final int BORDURE_HAUT = 810;
+	private final int BORDURE_BAS = 30;
+	private final int PAS_TITRE_Y=60;
+	private final int PAS_TITRE_X=200;
+	private final int PAS_DONNEES_Y=30;
+	private final int BORDURE_GAUCHE=25;
+	private final int BORDURE_DROITE=565;
+	private final int PAS_IMAGE_Y=50;
+	private final int PAS_IMAGE_X=50;
+	private final int HAUTEUR_MAX=40;
+	private final int LARGEUR_MAX=40;
+	private final int TAILLE_POLICE_DONNEES=12;
+	private final int TAILLE_POLICE_TITRE=20;
+	private final int PAS_BLANC=10;
+	
 	static {
 		try {
 			Class.forName("com.mysql.jdbc.Driver").newInstance();
@@ -191,6 +208,38 @@ public class ServeurRmi_Impl implements ServeurRmi {
 		System.out.println("Recuperation des donnees meteo");
 		return meteos;
 	}
+	
+	@Override
+	public Meteo getMeteo(int idMeteo) throws RemoteException{
+		Meteo meteo = null;
+
+		try {
+
+			String req = "SELECT * FROM `t_meteo` WHERE idMeteo=?";
+			PreparedStatement preparedStatement = this.connection.prepareStatement(req);
+			preparedStatement.setInt(1, idMeteo);
+			ResultSet resultSet = preparedStatement.executeQuery();
+			if (resultSet.next()) {
+				meteo = new Meteo();
+				meteo.setLieu(resultSet.getString("lieu"));
+				meteo.setTemps(Temps.valueOf(resultSet.getString("type")));
+				meteo.setDate(resultSet.getDate("date"));
+				meteo.setIdMeteo(resultSet.getInt("idMeteo"));
+				meteo.setMax(resultSet.getDouble("maximum"));
+				meteo.setMoy(resultSet.getDouble("moyenne"));
+				meteo.setMin(resultSet.getDouble("minimum"));
+				System.out.println(meteo.toString());
+			}
+			resultSet.close();
+			preparedStatement.close();
+
+		} catch (SQLException e) {
+			System.out.println("Erreur Base.getMeteo " + e.getMessage());
+		}
+		System.out.println("Recuperation des donnees meteo");
+		return meteo;
+	}
+
 
 	@Override
 	public int ajouterMeteo(Meteo meteo)throws RemoteException {
@@ -430,7 +479,139 @@ public class ServeurRmi_Impl implements ServeurRmi {
 		return images;
 	}
 
-	public static void main(String [] args) {
+	
+
+	@Override
+	public void ajouterListeMeteo(List<Meteo> listeMeteo) throws RemoteException {
+		for (int i=0;i<listeMeteo.size();i++) {
+			this.ajouterMeteo(listeMeteo.get(i));
+		}
+		System.out.println("Ajout d'une liste de meteo : "+listeMeteo.size()+" element(s)");
+	}
+
+	@Override
+	public byte[] generationPdf( int[] idMeteos) throws RemoteException {
+		PDDocument document = new PDDocument();
+		PDPage nouvellePage = new PDPage(PDRectangle.A4);
+		System.out.println(PDRectangle.A4.getWidth()+" "+PDRectangle.A4.getHeight());
+		byte[] pdf = null;	
+		
+		try {			
+			
+			PDPageContentStream contentStream = new PDPageContentStream(document, nouvellePage,PDPageContentStream.AppendMode.APPEND,true,true);
+
+		    contentStream.beginText();	     
+		    contentStream.setFont(PDType1Font.TIMES_ROMAN, TAILLE_POLICE_TITRE);
+		    int positionY=BORDURE_HAUT;
+		    contentStream.newLineAtOffset(PAS_TITRE_X, positionY);
+		    String titre = "DonnÈes MÈtÈo";		    	
+	    	contentStream.showText(titre);
+	    	System.out.println("titre");
+	    	
+	    	contentStream.setFont(PDType1Font.TIMES_ROMAN, TAILLE_POLICE_DONNEES);
+	    	
+	    	contentStream.newLineAtOffset(-(PAS_TITRE_X)+BORDURE_GAUCHE, -PAS_TITRE_Y);
+	    	positionY-=PAS_TITRE_Y;
+		    
+		    List<Meteo> listeMeteo=new ArrayList<Meteo>();
+		    for(int i=0;i<idMeteos.length;i++) {
+		    	listeMeteo.add(this.getMeteo(idMeteos[i]));
+		    }
+		    for(int i=0;i<listeMeteo.size();i++) {
+		    	if( positionY<(BORDURE_BAS+(2*PAS_DONNEES_Y))) {
+		    		contentStream.endText();
+		    		contentStream.close();
+		    		document.addPage(nouvellePage);
+		    		nouvellePage = new PDPage(PDRectangle.A4);
+		    		contentStream = new PDPageContentStream(document, nouvellePage,PDPageContentStream.AppendMode.APPEND,true,true);
+		    		contentStream.beginText();	     
+				    contentStream.setFont(PDType1Font.TIMES_ROMAN, TAILLE_POLICE_DONNEES);
+				    positionY=BORDURE_HAUT;
+				    contentStream.newLineAtOffset(BORDURE_GAUCHE, positionY);
+		    	}
+		    	
+		    	Meteo m=listeMeteo.get(i);
+		    	String ligne1 = m.getLieu()+"          ";
+		    	ligne1 +=m.getDate().toString()+"         "+m.getTemps().toString();
+		    
+		    	String ligne2="Minimum: "+m.getMin()+" ∞c         ";
+		    	ligne2 +="Maximum: "+m.getMax()+" ∞c           ";
+		    	ligne2 +="Moyenne:"+m.getMoy()+" ∞c           ";
+		    	
+		    	contentStream.showText(ligne1);
+		    	contentStream.newLineAtOffset(0,-PAS_DONNEES_Y);
+		    	contentStream.showText(ligne2);		    	
+		    	contentStream.newLineAtOffset(0,-(PAS_DONNEES_Y+PAS_BLANC));
+		    	
+		    	positionY-=(PAS_DONNEES_Y*2)+PAS_BLANC;
+		    	
+		    	List<Image> listeImage=this.getlisteImage(m.getIdMeteo());
+		    	PDPageContentStream contentImage = new PDPageContentStream(document, nouvellePage,PDPageContentStream.AppendMode.APPEND,true,true);
+		    	for(int y=0;y<listeImage.size();y++) {		    		
+		    		
+		    		PDImageXObject image = JPEGFactory.createFromByteArray(document,listeImage.get(y).getImage());
+		    		PDImageXObject image2 = LosslessFactory.createFromImage(document, image.getImage());
+		    		
+		    		System.out.println("test 1 : "+image2.getHeight()+" X "+image2.getWidth());
+		    		
+		    		double coef=this.coeficientReductionImage(image2.getWidth(), image2.getHeight());		    		
+		    		
+		    		contentImage.drawImage(image2, BORDURE_GAUCHE+(PAS_IMAGE_X*y),positionY-PAS_BLANC,(int)(image2.getWidth()/coef),(int)(image2.getHeight()/coef));
+
+		    	}
+		    	if(listeImage.size()>0) {
+		    		contentStream.newLine();		    	
+		    		contentStream.newLineAtOffset(0, -PAS_IMAGE_Y);
+		    		positionY-=PAS_IMAGE_Y;
+		    	}else {
+		    		contentStream.newLine();		    	
+		    		contentStream.newLineAtOffset(0, -PAS_BLANC);
+		    		positionY-=PAS_BLANC;
+		    	}
+		    	contentImage.close();
+		    	
+		    }
+		    
+		      
+
+		    contentStream.endText();
+		    System.out.println("Content added");
+		    contentStream.close();
+		      
+		      
+		} catch (IOException e) {
+			System.out.println("Erreur PDf");
+			e.printStackTrace();
+		}
+	      
+		 
+		 System.out.println("document :"+document.getNumberOfPages());
+		 ByteArrayOutputStream out = new ByteArrayOutputStream();
+		 try {			
+			document.save(out);           
+			pdf=out.toByteArray();
+		} catch (IOException e) {			
+			e.printStackTrace();
+		}
+		 
+		try {
+			document.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return pdf;
+	}
+	
+	private float  coeficientReductionImage(int larg, int haut) {
+		if(larg>haut) {
+			return larg/LARGEUR_MAX;
+		}else {
+			return haut/HAUTEUR_MAX;
+		}
+	}
+	
+public static void main(String [] args) {
 		
 		int port = 3000;
 		
@@ -465,113 +646,6 @@ public class ServeurRmi_Impl implements ServeurRmi {
 
 		
 		System.out.println("Serveur RMI lanc√©");
-	}
-
-	@Override
-	public void ajouterListeMeteo(List<Meteo> listeMeteo) throws RemoteException {
-		for (int i=0;i<listeMeteo.size();i++) {
-			this.ajouterMeteo(listeMeteo.get(i));
-		}
-		System.out.println("Ajout d'une liste de meteo : "+listeMeteo.size()+" element(s)");
-	}
-
-	@Override
-	public byte[] generationPdf() throws RemoteException {
-		PDDocument document = new PDDocument();
-		PDPage nouvellePage = new PDPage(PDRectangle.A4);
-		byte[] pdf = null;	
-		
-		try {			
-			
-			PDPageContentStream contentStream = new PDPageContentStream(document, nouvellePage,PDPageContentStream.AppendMode.APPEND,true,true);
-
-		    contentStream.beginText();	     
-		    contentStream.setFont(PDType1Font.TIMES_ROMAN, 20);
-		    int positionY=800;
-		    int pasY=100;
-		    contentStream.newLineAtOffset(200, positionY);
-		    String titre = "DonnÈes MÈtÈo";		    	
-	    	contentStream.showText(titre);
-	    	System.out.println("titre");
-	    	
-	    	contentStream.setFont(PDType1Font.TIMES_ROMAN, 12);
-	    	positionY-=60;
-	    	contentStream.newLineAtOffset(-175, -pasY);		  
-		    
-		    List<Meteo> listeMeteo=this.getMeteo();
-		    for(int i=0;i<listeMeteo.size();i++) {
-		    	System.out.println("info");
-		    	
-		    	Meteo m=listeMeteo.get(i);
-		    	String ligne1 = m.getLieu()+"          ";
-		    	ligne1 +=m.getDate().toString()+"         "+m.getTemps().toString();
-		    
-		    	String ligne2="temperature max:"+m.getMin()+" ∞c         ";
-		    	ligne2 +="temperature min:"+m.getMax()+" ∞c           ";
-		    	ligne2 +="temperature moy:"+m.getMoy()+" ∞c           ";
-		    	contentStream.showText(ligne1);
-		    	contentStream.newLineAtOffset(0,-30);
-		    	contentStream.showText(ligne2);
-		    	
-		    	List<Image> listeImage=this.getlisteImage(m.getIdMeteo());
-		    	System.out.println("image");
-		    	for(int y=0;y<listeImage.size();y++) {	
-		    		PDPageContentStream contentImage = new PDPageContentStream(document, nouvellePage,PDPageContentStream.AppendMode.APPEND,true,true);
-		    		PDImageXObject image = JPEGFactory.createFromByteArray(document,listeImage.get(y).getImage());
-		    		PDImageXObject image2 = LosslessFactory.createFromImage(document, image.getImage());
-		    		
-		    		System.out.println("test 1 : "+image2.getHeight()+" X "+image2.getWidth());
-		    		double coef=this.coeficientReductionImage(image2.getWidth(), image2.getHeight());
-		    		
-		    		contentImage.drawImage(image2, 25+(50*y),positionY-50,(int)(image2.getWidth()/coef),(int)(image2.getHeight()/coef));
-		    		
-		    		contentImage.close();
-		    	}
-		    	contentStream.newLine();		    	
-		    	contentStream.newLineAtOffset(0, -pasY);
-		    	positionY-=pasY;
-		    	
-		    }
-		    
-		      
-
-		    contentStream.endText();
-		    System.out.println("Content added");
-		    contentStream.close();
-		      
-		      
-		} catch (IOException e) {
-			System.out.println("Erreur PDf");
-			e.printStackTrace();
-		}
-	      
-		 document.addPage(nouvellePage);
-		 System.out.println("document :"+document.getNumberOfPages());
-		 ByteArrayOutputStream out = new ByteArrayOutputStream();
-		 try {			
-			document.save(out);           
-			pdf=out.toByteArray();
-		} catch (IOException e) {			
-			e.printStackTrace();
-		}
-		 
-		try {
-			document.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return pdf;
-	}
-	
-	private float  coeficientReductionImage(int larg, int haut) {
-		int maxHauteur=40;
-		int maxLargeur=40;
-		if(larg>haut) {
-			return larg/maxLargeur;
-		}else {
-			return haut/maxHauteur;
-		}
 	}
 
 

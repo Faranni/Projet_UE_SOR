@@ -5,7 +5,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.util.List;
 
+import beans.meteo.Meteo;
 import interfaceRmi.ServeurRmi;
 
 public class ClientRmi {
@@ -20,8 +22,14 @@ public class ClientRmi {
 			ServeurRmi serveur =(ServeurRmi) registry.lookup("serveurRmi");
 			
 			System.out.println("Connexion :"+serveur.ouvrir());
-			System.out.println("liste:"+serveur.getlisteImage(60).toString());
-			byte[] fichier=serveur.generationPdf();
+			List<Meteo> listeMeteo=serveur.getMeteo();
+			int[] ids=new int[listeMeteo.size()];
+			for(int i=0;i<listeMeteo.size();i++) {
+				ids[i]=listeMeteo.get(i).getIdMeteo();
+			}
+			
+			byte[] fichier=serveur.generationPdf(ids);
+			
 			System.out.println("taille fichier:"+fichier.length);
 			Path path = Paths.get("H:\\Documents\\donnee.pdf");
 			Files.write(path, fichier);

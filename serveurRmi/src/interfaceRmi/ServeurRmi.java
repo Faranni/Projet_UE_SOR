@@ -50,7 +50,9 @@ public interface ServeurRmi extends Remote {
 	public List<Image> getlisteImage(int id)throws RemoteException;
 	
 	public void ajouterListeMeteo(List<Meteo> listeMeteo) throws RemoteException;
-	
-	public byte[] generationPdf() throws RemoteException;
+
+	public Meteo getMeteo(int idMeteo) throws RemoteException;
+
+	public byte[] generationPdf(int[] idMeteos) throws RemoteException;
 
 }
